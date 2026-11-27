@@ -63,6 +63,13 @@ textarea{resize:vertical;min-height:44px}
 .dan b{display:block;color:var(--nhan2)}
 .dan small{color:var(--mo)}
 .dan:hover{background:rgba(37,226,212,.14)}
+.dan-hai{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-bottom:14px}
+.dan-hai .dan{margin:0}
+.hl-tt{display:grid;gap:4px;text-align:left;margin:10px 0;max-height:30vh;overflow:auto;font-size:13px}
+.hl-tt div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl-anh{display:flex;gap:6px;overflow-x:auto;margin-top:8px}
+.hl-anh .m{flex:0 0 46px;aspect-ratio:9/16;border-radius:7px;overflow:hidden;background:#000}
+.hl-anh img,.hl-anh video{width:100%;height:100%;object-fit:cover;display:block}
 .chan-co{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(15,15,20,.94);backdrop-filter:blur(8px);border-top:1px solid var(--vien)}
 .chan-co .giua{color:var(--mo);font-size:13px;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chan-co .phai{display:flex;gap:8px}
@@ -170,7 +177,10 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 <section data-b="1" class="on">
   <div class="hang gian"><h2>Sản phẩm cần làm video</h2><div class="hang"><button class="nut nho" id="b-mau">✨ Điền mẫu thử</button></div></div>
   <p class="phu">Nhập thông tin sản phẩm affiliate. App tự viết kịch bản, prompt Kling và dựng video 9:16 — miễn phí, chạy ngay trên máy anh.</p>
-  <button class="dan" id="b-dan"><b>📋 Dán thông tin sản phẩm</b><small>Mở trang sản phẩm trên Shopee / TikTok Shop, bôi đen chép tên + giá + mô tả rồi dán vào — app tự điền hết.</small></button>
+  <div class="dan-hai">
+    <button class="dan" id="b-dan"><b>📋 Dán thông tin sản phẩm</b><small>Mở trang sản phẩm trên Shopee / TikTok Shop, bôi đen chép tên + giá + mô tả rồi dán vào — app tự điền hết.</small></button>
+    <button class="dan" data-di="hl"><b>📦 Làm nhiều sản phẩm một lần</b><small>Dán 5, 10 sản phẩm, chọn ảnh từng cái — app tự làm và xuất video lần lượt cho tất cả.</small></button>
+  </div>
   <div class="khoi">
     <h3>Thông tin</h3>
     <div class="luoi2">
@@ -300,6 +310,31 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     </div>
   </div>
 </section>
+
+<!-- LÀM HÀNG LOẠT -->
+<section data-b="hl">
+  <div class="hang gian"><h2>📦 Làm nhiều sản phẩm một lần</h2><button class="nut nho" data-di="1">← Về làm từng cái</button></div>
+  <p class="phu">Mỗi sản phẩm: dán thông tin + chọn ảnh. Bấm <b>Làm video</b> là app tự viết kịch bản và xuất video lần lượt cho tất cả. Mỗi sản phẩm được lưu thành một dự án để sửa lại sau.</p>
+  <div class="khoi">
+    <h3>Cài đặt chung</h3>
+    <p class="trangthai" id="hl-kieu-dang" style="margin:0 0 10px"></p>
+    <div class="luoi2">
+      <label class="o"><span>Kiểu kịch bản</span><select id="hl-kieu">
+        <option value="giu">Giữ kiểu đang chọn cho tất cả</option>
+        <option value="xoay">Xoay vòng các kiểu (đa dạng hơn)</option></select></label>
+      <label class="o"><span>Thời lượng mỗi video</span><select id="hl-giay"><option value="15">15 giây</option><option value="30">30 giây</option><option value="45">45 giây</option></select></label>
+    </div>
+    <label class="hang" style="margin-top:10px;gap:6px"><input type="checkbox" id="hl-bia" checked> Kèm ảnh bìa cho từng video</label>
+    <p class="trangthai" style="margin:8px 0 0">Màu, nhãn dán, logo, tên kênh, nhạc, phụ đề lấy theo dự án đang mở — muốn đổi thì chỉnh ở bước 4 trước rồi quay lại đây.</p>
+  </div>
+  <div class="hang" style="margin-bottom:12px">
+    <button class="nut" id="hl-dan">📋 Dán nhiều sản phẩm cùng lúc</button>
+    <button class="nut" id="hl-them">＋ Thêm 1 sản phẩm</button>
+    <button class="nut do" id="hl-xoa-het">Xoá danh sách</button>
+  </div>
+  <div id="hl-ds"></div>
+  <div class="hang" style="justify-content:flex-end;margin-top:6px"><button class="nut chinh lon" id="hl-chay">▶ Làm video</button></div>
+</section>
 </main>
 
 <div class="chan-co" id="chan-co">
@@ -319,7 +354,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 
 <script>
 'use strict';
-const PHIEN = '1.2.0';
+const PHIEN = '1.3.0';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
@@ -497,6 +532,7 @@ function sangBuoc(b) {
   if (BUOC === '2') ve2();
   if (BUOC === '3') ve3();
   if (BUOC === '4') ve4();
+  if (BUOC === 'hl') { if (!HL.length) hlMoi(''); veHL(); }
   veNav();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1280,6 +1316,15 @@ async function xuatNhieu() {
 async function taiAnhBia() {
   if (!P.canh.length) return bao('Chưa có kịch bản — tạo ở bước 2 trước');
   dung();
+  const blob = await taoAnhBia();
+  const url = URL.createObjectURL(blob), ten = `${tenFile()}-anh-bia.jpg`;
+  $('#hop-xuat').innerHTML = `<h3>Ảnh bìa 🖼</h3><p class="trangthai">${ten} · 1080×1920</p><img src="${url}" alt="Ảnh bìa" style="width:100%;max-height:56vh;object-fit:contain;border-radius:12px;background:#000;margin-top:10px">
+    <div class="chan"><button class="nut" id="b-dong-x">Đóng</button><a class="nut chinh" href="${url}" download="${ten}">⬇ Tải ảnh bìa</a></div>
+    <p class="trangthai" style="margin-top:10px">Khi đăng TikTok/Shopee: chọn "Ảnh bìa" → Tải ảnh lên → chọn ảnh này. Chữ lấy từ cảnh mở đầu.</p>`;
+  $('#phu-xuat').hidden = false;
+  $('#b-dong-x').onclick = () => { $('#phu-xuat').hidden = true; };
+}
+async function taoAnhBia() {
   await chuanBiTatCa();
   const W = 1080, H = 1920, c = document.createElement('canvas'); c.width = W; c.height = H;
   const x = c.getContext('2d'), L = lich(), M = MS();
@@ -1311,13 +1356,7 @@ async function taiAnhBia() {
   ngat(x, tenNoi(), W * 0.86).slice(0, 2).forEach((ln, j) => x.fillText(ln, W / 2, H * 0.77 + j * W * 0.06));
   x.shadowBlur = 0;
   veDau(x, W, H, 5, true);
-  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
-  const url = URL.createObjectURL(blob), ten = `${tenFile()}-anh-bia.jpg`;
-  $('#hop-xuat').innerHTML = `<h3>Ảnh bìa 🖼</h3><p class="trangthai">${ten} · 1080×1920</p><img src="${url}" alt="Ảnh bìa" style="width:100%;max-height:56vh;object-fit:contain;border-radius:12px;background:#000;margin-top:10px">
-    <div class="chan"><button class="nut" id="b-dong-x">Đóng</button><a class="nut chinh" href="${url}" download="${ten}">⬇ Tải ảnh bìa</a></div>
-    <p class="trangthai" style="margin-top:10px">Khi đăng TikTok/Shopee: chọn "Ảnh bìa" → Tải ảnh lên → chọn ảnh này. Chữ lấy từ cảnh mở đầu.</p>`;
-  $('#phu-xuat').hidden = false;
-  $('#b-dong-x').onclick = () => { $('#phu-xuat').hidden = true; };
+  return new Promise(r => c.toBlob(r, 'image/jpeg', 0.92));
 }
 
 /* ---------- Thu giọng ---------- */
@@ -1416,6 +1455,8 @@ function veNav() {
   if (!P) return;
   const xong = { 1: !!P.ten.trim(), 2: P.canh.length > 0 };
   $$('#nav button').forEach(b => b.classList.toggle('xong', !!xong[b.dataset.b]));
+  $('#chan-co').hidden = BUOC === 'hl';
+  if (BUOC === 'hl') return;
   const b = +BUOC;
   $('#b-lui').style.visibility = b > 1 ? '' : 'hidden';
   $('#chan-giua').textContent = `Bước ${b}/4 · ${TEN_BUOC[b]}`;
@@ -1437,6 +1478,170 @@ function lamNhanh() {
   phat(0);
   bao('Đang phát thử — ưng thì bấm "Xuất video"', 3500);
 }
+
+/* ---------- Làm hàng loạt ---------- */
+let HL = [];
+function hlMoi(text) {
+  const it = { id: uid(), text: text || '', ten: '', gia: '', giaGoc: '', ma: '', diem: [], media: [] };
+  if (text) hlDoc(it);
+  HL.push(it); return it;
+}
+function hlDoc(it) {
+  const k = docThongTin(it.text);
+  it.ten = k.ten || it.ten || '';
+  it.gia = k.gia ? (+k.gia).toLocaleString('vi-VN') : it.gia;
+  it.giaGoc = k.giaGoc ? (+k.giaGoc).toLocaleString('vi-VN') : (k.gia ? '' : it.giaGoc);
+  it.ma = k.ma || ''; it.diem = k.diem || [];
+}
+const hlTim = el => { const d = el.closest('[data-hl]'); return d && HL.find(x => x.id === d.dataset.hl); };
+function hlTrangThai(it) {
+  return (it.diem.length ? `✓ ${it.diem.length} điểm nổi bật` : '⚠ Chưa có điểm nổi bật — app dùng câu chung') + (it.ma ? ` · mã ${it.ma}` : '');
+}
+function veHL() {
+  if (!P) return;
+  $('#hl-kieu-dang').textContent = `Dùng chung: ${NENTANG[P.nentang]} · ${MAU[P.mau][0]} · ${MS().ten}${P.logo ? ' · logo' : ''}${P.kenh.trim() ? ' · ' + P.kenh.trim() : ''}${P.phuDe ? ' · phụ đề' : ''}`;
+  const hg = $('#hl-giay'); if (!hg.dataset.dat) hg.value = [15, 30, 45].includes(+P.thoiLuong) ? P.thoiLuong : 30;
+  $('#hl-ds').innerHTML = HL.length ? HL.map((it, i) => `
+    <div class="canh" data-hl="${it.id}">
+      <div class="dau"><span class="vai"><em>${i + 1}</em><span data-hl-ten>${esc(it.ten ? ngan(it.ten, 44) : 'Sản phẩm mới')}</span></span><button class="nut nho do" data-hlx title="Bỏ sản phẩm này">✕</button></div>
+      <textarea data-hlf="text" rows="3" placeholder="Dán tên + giá + mô tả chép từ trang Shopee / TikTok Shop…">${esc(it.text)}</textarea>
+      <div class="luoi2" style="margin-top:8px">
+        <label class="o"><span>Tên sản phẩm</span><input type="text" data-hlf="ten" value="${esc(it.ten)}"></label>
+        <label class="o"><span>Giá bán</span><input type="text" data-hlf="gia" inputmode="numeric" value="${esc(it.gia)}"></label>
+        <label class="o"><span>Giá gốc (gạch)</span><input type="text" data-hlf="giaGoc" inputmode="numeric" value="${esc(it.giaGoc)}"></label>
+      </div>
+      <p class="trangthai" data-hl-tt style="margin:6px 0">${hlTrangThai(it)}</p>
+      <div class="hang"><label class="nut nho">🖼 Chọn ảnh/clip<input type="file" accept="image/*,video/*" multiple hidden data-hlanh></label>
+        <span class="trangthai">${it.media.length ? it.media.length + ' ảnh/clip' : 'Chưa có ảnh — sẽ dùng nền màu'}</span>
+        ${it.media.length ? '<button class="nut nho do" data-hlxa>Bỏ ảnh</button>' : ''}</div>
+      ${it.media.length ? `<div class="hl-anh">${it.media.map(m => `<div class="m">${anhNho(m, false)}</div>`).join('')}</div>` : ''}
+    </div>`).join('') : `<div class="khoi" style="text-align:center"><p>Chưa có sản phẩm nào.</p><p class="trangthai">Bấm "📋 Dán nhiều sản phẩm cùng lúc" hoặc "＋ Thêm 1 sản phẩm".</p></div>`;
+  const n = HL.filter(x => x.ten.trim()).length;
+  $('#hl-chay').textContent = n ? `▶ Làm ${n} video` : '▶ Làm video';
+  $('#hl-chay').disabled = !n;
+}
+let henHL = 0;
+$('#hl-ds').addEventListener('input', e => {
+  const el = e.target, it = hlTim(el), f = el.dataset.hlf; if (!it || !f) return;
+  it[f] = el.value;
+  const the = el.closest('[data-hl]');
+  if (f === 'ten') { $('[data-hl-ten]', the).textContent = it.ten ? ngan(it.ten, 44) : 'Sản phẩm mới'; const n = HL.filter(x => x.ten.trim()).length; $('#hl-chay').textContent = n ? `▶ Làm ${n} video` : '▶ Làm video'; $('#hl-chay').disabled = !n; }
+  if (f === 'text') {
+    clearTimeout(henHL);
+    henHL = setTimeout(() => {
+      hlDoc(it);
+      ['ten', 'gia', 'giaGoc'].forEach(k => { const o = $(`[data-hlf="${k}"]`, the); if (o) o.value = it[k]; });
+      $('[data-hl-ten]', the).textContent = it.ten ? ngan(it.ten, 44) : 'Sản phẩm mới';
+      $('[data-hl-tt]', the).textContent = hlTrangThai(it);
+      const n = HL.filter(x => x.ten.trim()).length; $('#hl-chay').textContent = n ? `▶ Làm ${n} video` : '▶ Làm video'; $('#hl-chay').disabled = !n;
+    }, 350);
+  }
+});
+$('#hl-ds').addEventListener('change', async e => {
+  const el = e.target; if (!el.hasAttribute('data-hlanh')) return;
+  const it = hlTim(el); if (!it) return;
+  for (let f of [...el.files]) {
+    const loai = f.type.startsWith('video') ? 'clip' : f.type.startsWith('image') ? 'anh' : ''; if (!loai) continue;
+    if (loai === 'anh') f = await nenAnh(f);
+    it.media.push({ id: uid(), loai, blob: f, ten: f.name });
+  }
+  veHL();
+});
+$('#hl-ds').addEventListener('click', e => {
+  const it = hlTim(e.target); if (!it) return;
+  if (e.target.closest('[data-hlx]')) { if ((it.text || it.media.length) && !confirm('Bỏ sản phẩm này khỏi danh sách?')) return; HL = HL.filter(x => x !== it); veHL(); }
+  if (e.target.closest('[data-hlxa]')) { it.media = []; veHL(); }
+});
+$('#hl-them').onclick = () => { hlMoi(''); veHL(); const ds = $$('#hl-ds textarea'); ds[ds.length - 1]?.focus(); };
+$('#hl-xoa-het').onclick = () => { if (!HL.length) return; if (!confirm(`Xoá cả ${HL.length} sản phẩm trong danh sách? (Video đã làm và dự án đã lưu không mất)`)) return; HL = []; veHL(); };
+$('#hl-dan').onclick = () => {
+  const dl = $('#dl-chon');
+  dl.innerHTML = `<div class="hang gian"><b>Dán nhiều sản phẩm cùng lúc</b><button class="nut nho" data-dong>✕</button></div>
+    <p class="phu" style="margin:8px 0">Dán thông tin từng sản phẩm nối tiếp nhau, <b>giữa 2 sản phẩm gõ một dòng chỉ có <code>---</code></b>.</p>
+    <textarea id="o-dan-nhieu" rows="12" placeholder="Máy xay sinh tố cầm tay mini&#10;₫350.000 ₫199.000&#10;- Xay đá 30 giây&#10;- Sạc USB&#10;---&#10;Kem chống nắng nâng tông 50ml&#10;149.000đ 299.000đ&#10;- Không bết dính&#10;---&#10;Tai nghe bluetooth chống ồn&#10;259k&#10;- Pin 30 giờ"></textarea>
+    <div class="hang" style="justify-content:flex-end;margin-top:10px"><button class="nut chinh" data-tach>✓ Tách thành từng sản phẩm</button></div>`;
+  dl.onclick = e => {
+    if (e.target.closest('[data-dong]')) return dl.close();
+    if (!e.target.closest('[data-tach]')) return;
+    const khoi = $('#o-dan-nhieu').value.split(/^\s*(?:-{3,}|={3,}|_{3,})\s*$/m).map(x => x.trim()).filter(Boolean);
+    if (!khoi.length) return bao('Chưa dán gì cả');
+    HL = HL.filter(x => x.text.trim() || x.ten.trim() || x.media.length);
+    khoi.forEach(t => hlMoi(t));
+    dl.close(); veHL();
+    const thieu = HL.filter(x => !x.ten.trim()).length;
+    bao(`Đã thêm ${khoi.length} sản phẩm${thieu ? ` — ${thieu} cái chưa đọc được tên, anh gõ tay giúp` : ''}. Giờ chọn ảnh cho từng cái nhé.`, 4200);
+  };
+  dl.showModal(); setTimeout(() => $('#o-dan-nhieu').focus(), 50);
+};
+
+const KIEU_XOAY = ['review', 'top3', 'flash', 'unbox', 'vande', 'truocsau'];
+async function chayHangLoat() {
+  const ds = HL.filter(x => x.ten.trim());
+  if (!ds.length) return bao('Chưa có sản phẩm nào có tên');
+  if (!chonMime() || !CV.captureStream) return bao('Trình duyệt này chưa xuất được video — dùng Chrome hoặc Edge bản mới', 4000);
+  const goc = P, xoay = $('#hl-kieu').value === 'xoay', coBia = $('#hl-bia').checked, giay = +$('#hl-giay').value || 30;
+  dung();
+  const hop = $('#hop-xuat');
+  hop.innerHTML = `<h3 id="tien-td">Đang làm video 1/${ds.length}…</h3>
+    <p class="phu" style="margin:0">Khoảng ${Math.ceil(ds.length * (giay + 5) / 60)} phút. Giữ tab này mở, đừng chuyển app, đừng tắt màn hình.</p>
+    <div class="thanh"><i id="tien"></i></div><p class="trangthai" id="tien-so">Đang chuẩn bị…</p>
+    <div class="hl-tt" id="hl-tt">${ds.map((it, k) => `<div data-k="${k}">⏳ ${k + 1}. ${esc(ngan(it.ten, 50))}</div>`).join('')}</div>
+    <button class="nut" id="b-huy">Dừng lại</button>`;
+  $('#phu-xuat').hidden = false;
+  const tt = { huy: false };
+  $('#b-huy').onclick = () => { tt.huy = true; huyGhi(); };
+  const dong = (k, s) => { const d = $(`#hl-tt [data-k="${k}"]`); if (d) d.textContent = `${s} ${k + 1}. ${ngan(ds[k].ten, 50)}`; };
+  const khoa = await giuSang();
+  const kq = [];
+  for (let k = 0; k < ds.length && !tt.huy; k++) {
+    const it = ds[k];
+    $('#tien-td').textContent = `Đang làm video ${k + 1}/${ds.length}…`;
+    dong(k, '🎬');
+    const p = duAnMoi();
+    Object.assign(p, {
+      nentang: goc.nentang, thoiLuong: giay, mau: xoay ? KIEU_XOAY[k % KIEU_XOAY.length] : goc.mau,
+      kieuChu: goc.kieuChu, viTri: goc.viTri, chuyen: goc.chuyen, chatLuong: goc.chatLuong, hienGia: goc.hienGia, phuDe: goc.phuDe !== false,
+      mauSac: goc.mauSac || 'do', nhanDan: [...(goc.nhanDan || [])], nhanTu: goc.nhanTu || '', logo: goc.logo || null, logoId: goc.logoId || '', kenh: goc.kenh || '',
+      boiCanh: goc.boiCanh, nguoi: goc.nguoi, nhac: { ...goc.nhac },
+      ten: it.ten.trim(), gia: it.gia, giaGoc: it.giaGoc, ma: it.ma, diem: it.diem.length ? it.diem.slice(0, 6) : ['', '', ''],
+      media: it.media.map(m => ({ ...m }))
+    });
+    P = p;
+    p.media.forEach(chuanBi);
+    p.canh = taoKichBan(); tuGan(true); p.caption = taoCaption();
+    try { await DB.luu(p); DS.unshift(p); } catch {}
+    const v = await ghiVideo(pr => tienDo((k + pr) / ds.length));
+    if (!v || tt.huy) { dong(k, '⏹'); break; }
+    const r = { ...v, tenSp: p.ten, caption: p.caption, ten: `${String(k + 1).padStart(2, '0')}-${tenFile()}.${v.duoi}` };
+    if (coBia) { try { r.bia = await taoAnhBia(); r.tenBia = `${String(k + 1).padStart(2, '0')}-${tenFile()}-bia.jpg`; } catch {} }
+    kq.push(r);
+    dong(k, '✅');
+  }
+  try { khoa && khoa.release(); } catch {}
+  P = goc; moDuAn(goc); veHL();
+  if (!kq.length) { $('#phu-xuat').hidden = true; return bao('Đã dừng — chưa xong video nào'); }
+  hienKetQuaHL(kq, tt.huy);
+}
+function hienKetQuaHL(ds, dungGiua) {
+  ds.forEach(d => { d.url = URL.createObjectURL(d.blob); if (d.bia) d.biaUrl = URL.createObjectURL(d.bia); });
+  const hop = $('#hop-xuat');
+  hop.innerHTML = `<h3>${dungGiua ? 'Đã dừng — xong' : 'Xong'} ${ds.length} video 🎉</h3>
+    <p class="trangthai">Mỗi sản phẩm đã lưu thành một dự án (chọn ở ô trên cùng để sửa lại rồi xuất lại).</p>
+    <div class="ds-kq">${ds.map((d, k) => `<div class="dong"><video src="${d.url}#t=0.6" muted playsinline preload="metadata"></video>
+      <div><b>${k + 1}. ${esc(ngan(d.tenSp, 48))}</b><p class="trangthai" style="margin:2px 0 6px">${(d.blob.size / 1048576).toFixed(1)} MB</p>
+      <div class="hang"><a class="nut nho chinh" href="${d.url}" download="${esc(d.ten)}">⬇ Video</a>${d.biaUrl ? `<a class="nut nho" href="${d.biaUrl}" download="${esc(d.tenBia)}">🖼 Bìa</a>` : ''}<button class="nut nho" data-cap="${k}">📋 Caption</button></div></div></div>`).join('')}</div>
+    <div class="chan"><button class="nut" id="b-dong-x">Đóng</button><button class="nut" id="b-cap-txt">⬇ File caption</button><button class="nut chinh" id="b-tai-het">⬇ Tải tất cả</button></div>
+    <p class="trangthai" style="margin-top:8px">Bấm "Tải tất cả" mà trình duyệt hỏi "tải nhiều tệp" thì chọn Cho phép.</p>`;
+  hop.onclick = e => { const b = e.target.closest('[data-cap]'); if (b) chep(ds[+b.dataset.cap].caption); };
+  $('#b-dong-x').onclick = () => { $('#phu-xuat').hidden = true; hop.onclick = null; };
+  $('#b-cap-txt').onclick = () => taiFile('caption-hang-loat.txt', ds.map((d, k) => `${k + 1}. ${d.tenSp}\nFile: ${d.ten}\n\n${d.caption}`).join('\n\n------------------------------\n\n'));
+  $('#b-tai-het').onclick = () => {
+    const ts = []; ds.forEach(d => { ts.push([d.url, d.ten]); if (d.biaUrl) ts.push([d.biaUrl, d.tenBia]); });
+    ts.forEach(([u, t], k) => setTimeout(() => { const a = document.createElement('a'); a.href = u; a.download = t; document.body.appendChild(a); a.click(); a.remove(); }, k * 700));
+  };
+}
+$('#hl-chay').onclick = chayHangLoat;
+$('#hl-giay').onchange = e => { e.target.dataset.dat = '1'; };
 
 /* ---------- Sự kiện ---------- */
 document.addEventListener('input', e => {
