@@ -17,6 +17,16 @@ Web app miễn phí để làm video affiliate dọc 9:16 cho **TikTok Shop, Sho
 3. **Prompt Kling**: prompt tiếng Anh cho từng cảnh + negative prompt, để dán vào Kling AI (Image to Video, 9:16). Clip tải về thì thả lại vào app.
 4. **Dựng video**: gán ảnh/clip cho từng cảnh, hiệu ứng chuyển động, kiểu chữ, khung giá có gạch giá gốc và % giảm, mũi tên kêu gọi mua, tên kênh, nhạc nền có sẵn (tự tổng hợp, không dính bản quyền) hoặc nhạc của mình, thu giọng từng cảnh bằng micro. Bấm **Xuất video**: ra file MP4 (Chrome/Edge bản mới) hoặc WEBM.
 
+## Thêm ở bản 1.2
+
+- **🎬 Xuất 3 bản mở đầu khác**: 3 video giống nhau, chỉ khác câu mở đầu, để đăng thử xem bản nào nhiều view.
+- **🖼 Ảnh bìa** 1080×1920: chữ to từ cảnh mở đầu, giá, % giảm, logo.
+- **Bộ màu**: Đỏ sale, Hồng pastel, Đen vàng sang, Xanh tươi.
+- **Nhãn dán** góc trên: Freeship, Chính hãng, Bán chạy, Có sẵn, Đổi trả 7 ngày, Bảo hành, hoặc tự gõ.
+- **Logo kênh** cạnh tên kênh. Dự án mới tự mang theo logo, tên kênh, bộ màu của dự án trước.
+- **Khung đọc lời** khi thu giọng: chữ to, đếm ngược 3-2-1, đồng hồ đang thu.
+- Kho câu mở đầu nhiều hơn (5–8 câu mỗi kiểu). Nhạc nền dựng sẵn khi mở bước 4 nên bấm phát là chạy ngay.
+
 ## Ghi chú
 
 - Giá gõ kiểu `199k`, `1tr2` đều hiểu. Ảnh lớn tự nén còn tối đa 1440px cho nhẹ máy.

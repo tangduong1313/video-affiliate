@@ -1,5 +1,5 @@
-// Xưởng Video Affiliate – bản 1.1.0. Mạng trước, mất mạng thì lấy bản đã lưu.
-const KHO = 'xva-1.1.0';
+// Xưởng Video Affiliate – bản 1.2.0. Mạng trước, mất mạng thì lấy bản đã lưu.
+const KHO = 'xva-1.2.0';
 const TEP = ['./', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(KHO).then(c => c.addAll(TEP)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== KHO).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
