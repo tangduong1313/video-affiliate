@@ -15,6 +15,7 @@
 <style>
 :root{--nen:#0f0f14;--the:#191922;--the2:#22222e;--vien:#2e2e3c;--chu:#f2f2f7;--mo:#9a9ab0;--nhan:#ff3b6b;--nhan2:#25e2d4;--vang:#ffd84d;--r:14px}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;background:var(--nen);color:var(--chu);font:15px/1.5 "Be Vietnam Pro",system-ui,"Segoe UI",sans-serif}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -58,6 +59,25 @@ textarea{resize:vertical;min-height:44px}
 .mau button small{color:var(--mo);font-size:12px;line-height:1.35;display:block;margin-top:3px}
 .mau button.on{border-color:var(--nhan);background:rgba(255,59,107,.12)}
 .diem{display:flex;gap:6px;margin-bottom:6px}
+.dan{display:block;width:100%;text-align:left;border:1px dashed var(--nhan2);background:rgba(37,226,212,.08);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.dan b{display:block;color:var(--nhan2)}
+.dan small{color:var(--mo)}
+.dan:hover{background:rgba(37,226,212,.14)}
+.chan-co{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:rgba(15,15,20,.94);backdrop-filter:blur(8px);border-top:1px solid var(--vien)}
+.chan-co .giua{color:var(--mo);font-size:13px;text-align:center;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chan-co .phai{display:flex;gap:8px}
+.buoc button.xong::after{content:" ✓";color:var(--nhan2)}
+.buoc button.on.xong::after{color:#fff}
+details.gap{background:var(--the);border:1px solid var(--vien);border-radius:var(--r);margin-bottom:14px}
+details.gap>summary{cursor:pointer;list-style:none;padding:13px 16px;font-weight:800;display:flex;justify-content:space-between;gap:8px}
+details.gap>summary::-webkit-details-marker{display:none}
+details.gap>summary small{font-weight:400;color:var(--mo);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+details.gap>summary::after{content:"▾";color:var(--mo)}
+details.gap[open]>summary::after{content:"▴"}
+details.gap>.noi{padding:0 16px 16px}
+.daluu{font-size:12px;color:var(--nhan2);opacity:0;transition:.3s;white-space:nowrap}
+.daluu.hien{opacity:1}
+.khung canvas{cursor:pointer}
 .tai{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:2px dashed var(--vien);border-radius:12px;padding:18px;text-align:center;color:var(--mo);cursor:pointer}
 .tai:hover,.tai.keo{border-color:var(--nhan2);color:var(--chu)}
 .tv{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:12px}
@@ -77,7 +97,8 @@ textarea{resize:vertical;min-height:44px}
 .ghichu b{color:var(--chu)}
 .canhbao{color:var(--vang);font-size:13px}
 .prompt{font-family:ui-monospace,Consolas,monospace;font-size:13px;min-height:84px}
-.dung4{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:16px;align-items:start}
+.dung4{display:grid;grid-template-columns:minmax(260px,380px) minmax(0,1fr);gap:16px;align-items:start}
+.dung4>*{min-width:0}
 .xem{position:sticky;top:120px}
 .khung{position:relative;width:100%;max-width:340px;margin:0 auto;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#000;border:6px solid #2a2a36;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .khung canvas{width:100%;height:100%;display:block}
@@ -108,7 +129,10 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 .trangthai{font-size:12px;color:var(--mo)}
 .chan{display:flex;justify-content:space-between;gap:8px;margin-top:6px;flex-wrap:wrap}
 @media (max-width:820px){
-  .dung4{grid-template-columns:1fr}
+  .dung4{grid-template-columns:minmax(0,1fr)}
+  .chan-co .giua{display:none}
+  #b-xuat{display:none}
+  .chan-co .nut{padding:9px 12px}
   .xem{position:static}
   .canh .hai{grid-template-columns:1fr}
   .logo b{display:none}
@@ -122,6 +146,8 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   <div class="duan">
     <select id="ds-duan" title="Dự án đã lưu"></select>
     <button class="nut nho" id="b-moi">＋ Mới</button>
+    <span class="daluu" id="daluu">✓ Đã lưu</span>
+    <button class="nut nho" id="b-nhan" title="Nhân bản dự án này (làm sản phẩm tương tự)">⧉</button>
     <button class="nut nho do" id="b-xoa" title="Xoá dự án này">Xoá</button>
   </div>
 </header>
@@ -135,8 +161,9 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 <main>
 <!-- BƯỚC 1 -->
 <section data-b="1" class="on">
-  <div class="hang gian"><h2>Sản phẩm cần làm video</h2><button class="nut nho" id="b-mau">✨ Điền mẫu thử</button></div>
+  <div class="hang gian"><h2>Sản phẩm cần làm video</h2><div class="hang"><button class="nut nho" id="b-mau">✨ Điền mẫu thử</button></div></div>
   <p class="phu">Nhập thông tin sản phẩm affiliate. App tự viết kịch bản, prompt Kling và dựng video 9:16 — miễn phí, chạy ngay trên máy anh.</p>
+  <button class="dan" id="b-dan"><b>📋 Dán thông tin sản phẩm</b><small>Mở trang sản phẩm trên Shopee / TikTok Shop, bôi đen chép tên + giá + mô tả rồi dán vào — app tự điền hết.</small></button>
   <div class="khoi">
     <h3>Thông tin</h3>
     <div class="luoi2">
@@ -166,7 +193,6 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <label class="tai" id="vung-tai"><b>＋ Chọn hoặc kéo thả ảnh / clip vào đây</b><small>JPG, PNG, MP4, MOV…</small><input type="file" id="f-media" accept="image/*,video/*" multiple hidden></label>
     <div class="tv" id="ds-media"></div>
   </div>
-  <div class="hang" style="justify-content:flex-end"><button class="nut chinh lon" id="b-sang2">Tiếp: viết kịch bản →</button></div>
 </section>
 
 <!-- BƯỚC 2 -->
@@ -187,7 +213,6 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <div class="hang gian"><h3>Caption + hashtag để đăng</h3><div class="hang"><button class="nut nho" id="b-caption">🔄 Viết lại</button><button class="nut nho" id="b-chep-cap">📋 Chép</button></div></div>
     <textarea id="caption" rows="6"></textarea>
   </div>
-  <div class="hang" style="justify-content:space-between"><button class="nut" data-di="1">← Sản phẩm</button><button class="nut chinh lon" data-di="3">Tiếp: prompt Kling →</button></div>
 </section>
 
 <!-- BƯỚC 3 -->
@@ -212,7 +237,6 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   </div>
   <div class="hang" style="margin-bottom:10px"><button class="nut" id="b-chep-all">📋 Chép tất cả prompt</button><button class="nut" id="b-lam-lai-pr">🔄 Tạo lại prompt</button></div>
   <div id="ds-prompt"></div>
-  <div class="hang" style="justify-content:space-between"><button class="nut" data-di="2">← Kịch bản</button><button class="nut chinh lon" data-di="4">Tiếp: dựng video →</button></div>
 </section>
 
 <!-- BƯỚC 4 -->
@@ -231,8 +255,11 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       <p class="trangthai" id="ho-tro" style="text-align:center;max-width:340px;margin:8px auto 0"></p>
     </div>
     <div>
-      <div class="khoi">
-        <h3>Kiểu dáng</h3>
+      <div class="hang gian" style="margin-bottom:8px"><h3 style="margin:0">Các cảnh</h3><div class="hang"><button class="nut nho" id="b-tu-gan">🪄 Tự gán ảnh/clip</button><label class="nut nho">＋ Tải ảnh/clip<input type="file" id="f-media2" accept="image/*,video/*" multiple hidden></label></div></div>
+      <div id="ds-canh4"></div>
+      <div style="height:6px"></div>
+      <details class="gap" id="gap-kieu">
+        <summary>🎨 Chữ, hiệu ứng, tên kênh <small id="tom-kieu"></small></summary><div class="noi">
         <p class="nhan-o">Kiểu chữ</p><div class="hang" id="chon-kieuchu"></div>
         <p class="nhan-o" style="margin-top:10px">Vị trí chữ</p><div class="hang" id="chon-vitri"></div>
         <p class="nhan-o" style="margin-top:10px">Chuyển cảnh</p><div class="hang" id="chon-chuyen"></div>
@@ -241,9 +268,10 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
           <label class="o"><span>Chất lượng</span><select data-k="chatLuong"><option value="720">720×1280 (nhanh, nhẹ)</option><option value="1080">1080×1920 (nét, máy khoẻ)</option></select></label>
         </div>
         <label class="hang" style="margin-top:10px;gap:6px"><input type="checkbox" id="hien-gia"> Hiện nhãn giá ở góc mọi cảnh</label>
-      </div>
-      <div class="khoi">
-        <h3>Âm thanh</h3>
+        <label class="hang" style="margin-top:6px;gap:6px"><input type="checkbox" id="phu-de"> Hiện lời đọc thành phụ đề chạy dưới (người xem tắt tiếng vẫn hiểu)</label>
+      </div></details>
+      <details class="gap" id="gap-am">
+        <summary>🎵 Nhạc nền &amp; giọng đọc <small id="tom-am"></small></summary><div class="noi">
         <div class="luoi2">
           <label class="o"><span>Nhạc nền</span><select id="nhac-loai">
             <option value="soi">Nhạc có sẵn: Sôi động</option><option value="nhe">Nhạc có sẵn: Nhẹ nhàng</option><option value="gap">Nhạc có sẵn: Gấp gáp (sale)</option>
@@ -252,26 +280,39 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
         </div>
         <div class="hang" id="nhac-file-o" style="margin-top:8px"><label class="nut nho">🎵 Chọn file nhạc<input type="file" id="f-nhac" accept="audio/*" hidden></label><span class="trangthai" id="nhac-ten"></span></div>
         <div class="hang" style="margin-top:12px"><label class="nut nho">🎙 Tải giọng đọc cả video<input type="file" id="f-giong" accept="audio/*" hidden></label><span class="trangthai" id="giong-ten"></span><button class="nut nho do" id="b-xoa-giong" hidden>Bỏ</button></div>
-        <p class="trangthai" style="margin:8px 0 0">Muốn giọng AI: dán phần "lời đọc" vào CapCut (Văn bản → Chuyển văn bản thành giọng nói), xuất file âm thanh rồi tải lên đây. Hoặc thu giọng từng cảnh bằng nút 🎙 bên dưới — cảnh tự dài ra cho vừa lời.</p>
-      </div>
-      <div class="hang gian" style="margin-bottom:8px"><h3 style="margin:0">Các cảnh</h3><div class="hang"><button class="nut nho" id="b-tu-gan">🪄 Tự gán ảnh/clip</button><label class="nut nho">＋ Tải ảnh/clip<input type="file" id="f-media2" accept="image/*,video/*" multiple hidden></label></div></div>
-      <div id="ds-canh4"></div>
+        <p class="trangthai" style="margin:8px 0 0">Muốn giọng AI: dán phần "lời đọc" vào CapCut (Văn bản → Chuyển văn bản thành giọng nói), xuất file âm thanh rồi tải lên đây. Hoặc thu giọng từng cảnh bằng nút 🎙 ở từng cảnh — cảnh tự dài ra cho vừa lời.</p>
+      </div></details>
     </div>
   </div>
 </section>
 </main>
 
+<div class="chan-co" id="chan-co">
+  <button class="nut" id="b-lui">← Quay lại</button>
+  <span class="giua" id="chan-giua"></span>
+  <span class="phai"><button class="nut" id="b-nhanh" title="Tạo kịch bản, gán ảnh và xem video luôn">⚡ Làm nhanh</button><button class="nut chinh" id="b-tien">Tiếp →</button></span>
+</div>
 <dialog id="dl-chon"></dialog>
 <div id="phu-xuat" hidden><div class="hop-xuat" id="hop-xuat"></div></div>
 <div id="toast"></div>
 
 <script>
 'use strict';
-const PHIEN = '1.0.0';
+const PHIEN = '1.1.0';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
-const soTien = v => Number(String(v || '').replace(/[^\d]/g, '')) || 0;
+const soTien = v => {
+  const s = String(v || '').toLowerCase().replace(/\s|đ|₫|vnđ|vnd/g, '');
+  if (!s) return 0;
+  const m = s.match(/^(\d+(?:[.,]\d+)?)(k|nghìn|ngàn|tr|triệu|m)(\d*)$/);
+  if (m) {
+    const n = parseFloat(m[1].replace(',', '.'));
+    if (/^(k|nghìn|ngàn)$/.test(m[2])) return Math.round(n * 1000);
+    return Math.round((n + (m[3] ? parseFloat('0.' + m[3]) : 0)) * 1e6);
+  }
+  return Number(s.replace(/[^\d]/g, '')) || 0;
+};
 const fmt = n => n ? n.toLocaleString('vi-VN') + 'đ' : '';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const boDau = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
@@ -316,7 +357,7 @@ function duAnMoi() {
     id: uid(), tao: Date.now(), sua: Date.now(), ten: '', moTaEN: '', gia: '', giaGoc: '', ma: '', diem: ['', '', ''], khach: '', vande: '',
     nentang: 'tiktok', thoiLuong: 30, mau: 'review', boiCanh: 'studio', nguoi: 'tay', kenh: '', media: [], canh: [], caption: '', lanTao: 0,
     nhac: { loai: 'soi', am: 35, blob: null, ten: '' }, giongCa: null, giongCaId: '', giongCaTen: '',
-    kieuChu: 'hop', viTri: 'duoi', chuyen: 'mo', chatLuong: '720', hienGia: false
+    kieuChu: 'hop', viTri: 'duoi', chuyen: 'mo', chatLuong: '720', hienGia: false, phuDe: true
   };
 }
 let henLuu = null;
@@ -325,7 +366,8 @@ function luu() {
   P.sua = Date.now();
   clearTimeout(henLuu);
   henLuu = setTimeout(async () => {
-    try { await DB.luu(P); nho.dat('duan-cuoi', P.id); veDsDuAn(); } catch (e) { console.warn(e); }
+    try { await DB.luu(P); nho.dat('duan-cuoi', P.id); veDsDuAn(); const d = $('#daluu'); d.classList.add('hien'); clearTimeout(d.h); d.h = setTimeout(() => d.classList.remove('hien'), 1500); } catch (e) { console.warn(e); }
+    veNav();
   }, 600);
 }
 async function napDs() { try { DS = (await DB.tatCa()) || []; } catch { DS = []; } DS.sort((a, b) => b.sua - a.sua); }
@@ -339,6 +381,7 @@ function moDuAn(p) {
   P.media.forEach(chuanBi);
   veTatCa();
   veDsDuAn();
+  veNav();
   nho.dat('duan-cuoi', P.id);
 }
 
@@ -357,11 +400,23 @@ function anhNho(m, tag = true) {
   if (!m) return '';
   return m.loai === 'anh' ? `<img src="${nguon(m)}" alt="">` : `<video src="${nguon(m)}#t=0.4" muted playsinline preload="metadata"></video>${tag ? '<span class="tag">clip</span>' : ''}`;
 }
-function themMedia(files) {
+async function nenAnh(f) {
+  try {
+    const bm = await createImageBitmap(f), dai = Math.max(bm.width, bm.height), MAX = 1440;
+    if (dai <= MAX && f.size < 1.5e6) { bm.close && bm.close(); return f; }
+    const k = Math.min(1, MAX / dai), c = document.createElement('canvas');
+    c.width = Math.round(bm.width * k); c.height = Math.round(bm.height * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(bm, 0, 0, c.width, c.height);
+    const b = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.88));
+    return b && b.size < f.size ? new File([b], f.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : f;
+  } catch { return f; }
+}
+async function themMedia(files) {
   let n = 0;
-  for (const f of files) {
+  for (let f of [...files]) {
     const loai = f.type.startsWith('video') ? 'clip' : f.type.startsWith('image') ? 'anh' : '';
     if (!loai) continue;
+    if (loai === 'anh') f = await nenAnh(f);
     const m = { id: uid(), loai, blob: f, ten: f.name };
     P.media.push(m); chuanBi(m); n++;
   }
@@ -412,6 +467,7 @@ function sangBuoc(b) {
   if (BUOC === '2') ve2();
   if (BUOC === '3') ve3();
   if (BUOC === '4') ve4();
+  veNav();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 function veTatCa() {
@@ -437,7 +493,7 @@ const CTA = {
 };
 function taoKichBan() {
   const n = P.lanTao || 0, chon = (a, k = 0) => a[(n + k) % a.length];
-  const ten = P.ten.trim() || 'sản phẩm này', gia = soTien(P.gia), goc = soTien(P.giaGoc);
+  const ten = tenNoi(), gia = soTien(P.gia), goc = soTien(P.giaGoc);
   const pt = gia && goc > gia ? Math.round((1 - gia / goc) * 100) : 0;
   const vd = P.vande.trim(), ma = P.ma.trim();
   const D = P.diem.map(s => s.trim()).filter(Boolean);
@@ -494,6 +550,12 @@ function taoKichBan() {
   add('cta', chon(cta.chu), chon(cta.loi));
   chiaGiay(S, P.thoiLuong);
   return S;
+}
+function tenNoi() {
+  let t = (P.ten || '').trim(); if (!t) return 'sản phẩm này';
+  t = t.split(/\s*[,|/(\[–-]\s+|\s*[,|(\[]\s*/)[0].trim();
+  const w = t.split(/\s+/);
+  return w.length > 7 ? w.slice(0, 7).join(' ') : t;
 }
 const soTu = s => String(s || '').trim().split(/\s+/).filter(Boolean).length;
 function chiaGiay(S, T) {
@@ -617,6 +679,9 @@ function ve4() {
   chips($('#chon-vitri'), VITRI, P.viTri, v => { P.viTri = v; ve4(); veKhungTinh(); });
   chips($('#chon-chuyen'), CHUYEN, P.chuyen, v => { P.chuyen = v; ve4(); });
   $('#hien-gia').checked = !!P.hienGia;
+  $('#phu-de').checked = !!P.phuDe;
+  $('#tom-kieu').textContent = `${KIEUCHU[P.kieuChu]} · chữ ${VITRI[P.viTri].toLowerCase()} · ${CHUYEN[P.chuyen].toLowerCase()}${P.phuDe ? ' · phụ đề' : ''}`;
+  $('#tom-am').textContent = (P.nhac.loai === 'tat' ? 'Không nhạc' : P.nhac.loai === 'file' ? (P.nhac.ten || 'nhạc của anh') : $('#nhac-loai').selectedOptions[0]?.textContent.replace('Nhạc có sẵn: ', 'Nhạc ')) + (P.giongCa ? ' · có giọng đọc' : P.canh.some(c => c.thoai) ? ` · ${P.canh.filter(c => c.thoai).length} cảnh có giọng` : '');
   const nl = P.nhac.loai === 'file' && !P.nhac.blob ? 'file' : P.nhac.loai;
   $('#nhac-loai').value = nl;
   $('#nhac-am').value = P.nhac.am; $('#am-so').textContent = P.nhac.am + '%';
@@ -669,7 +734,7 @@ function chonMediaChoCanh(i) {
     const b = e.target.closest('button[data-m]'); if (!b) return;
     c.mediaId = b.dataset.m; luu(); dl.close(); ve4(); xemCanh(i);
   };
-  $('[data-them]', dl).onchange = e => { themMedia(e.target.files); dl.close(); chonMediaChoCanh(i); };
+  $('[data-them]', dl).onchange = async e => { dl.close(); await themMedia(e.target.files); chonMediaChoCanh(i); };
   dl.showModal();
 }
 
@@ -845,6 +910,15 @@ function veMuiTen(ctx, W, H, local) {
   ctx.lineTo(W / 2 + s * 0.8, y0 - s * 0.1); ctx.lineTo(W / 2, y0 + s * 0.8); ctx.lineTo(W / 2 - s * 0.8, y0 - s * 0.1); ctx.lineTo(W / 2 - s * 0.35, y0 - s * 0.1); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
+function vePhuDe(ctx, loi, W, H, p) {
+  const tu = String(loi || '').trim().split(/\s+/).filter(Boolean); if (!tu.length) return;
+  const nhom = []; for (let k = 0; k < tu.length; k += 6) nhom.push(tu.slice(k, k + 6).join(' '));
+  const t = nhom[Math.min(nhom.length - 1, Math.floor(Math.max(0, p) * nhom.length))];
+  const fs = Math.round(W * 0.044); ctx.font = `700 ${fs}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const y = P.viTri === 'duoi' ? H * 0.785 : H * 0.74;
+  ctx.lineJoin = 'round'; ctx.lineWidth = fs * 0.22; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(t, W / 2, y, W * 0.9);
+  ctx.fillStyle = '#fff'; ctx.fillText(t, W / 2, y, W * 0.9);
+}
 function veCanh(ctx, L, i, local, W, H, dangChay, khongChu) {
   const l = L[i], c = l.c;
   veMediaCanh(ctx, l, i, local, W, H, dangChay);
@@ -853,6 +927,7 @@ function veCanh(ctx, L, i, local, W, H, dangChay, khongChu) {
   if (c.vai === 'gia') veGia(ctx, W, H, local / 0.5);
   if (c.vai === 'cta') veMuiTen(ctx, W, H, local);
   if (!khongChu) veChu(ctx, c.chu, W, H, local / 0.35);
+  if (!khongChu && P.phuDe) vePhuDe(ctx, c.loi, W, H, local / (l.e - l.s));
   if (c.vai === 'hook' && i === 0 && local < 0.18) { ctx.fillStyle = `rgba(255,255,255,${0.7 * (1 - local / 0.18)})`; ctx.fillRect(0, 0, W, H); }
 }
 function ve(t, dangChay) {
@@ -981,7 +1056,7 @@ async function xuat() {
   const mime = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1,mp4a', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m));
   if (!mime || !CV.captureStream) return bao('Trình duyệt này chưa xuất được video — dùng Chrome hoặc Edge bản mới', 4000);
   const hop = $('#hop-xuat'), phuX = $('#phu-xuat');
-  hop.innerHTML = `<h3>Đang dựng video…</h3><p class="phu" style="margin:0">Video đang chạy một lượt để ghi. Giữ tab này mở, đừng chuyển app.</p><div class="thanh"><i id="tien"></i></div><p class="trangthai" id="tien-so">Đang chuẩn bị…</p><button class="nut" id="b-huy">Huỷ</button>`;
+  hop.innerHTML = `<h3>Đang dựng video…</h3><p class="phu" style="margin:0">Mất khoảng ${Math.ceil(tong() + 3)} giây. Giữ tab này mở, đừng chuyển app.</p><div class="thanh"><i id="tien"></i></div><p class="trangthai" id="tien-so">Đang chuẩn bị…</p><button class="nut" id="b-huy">Huỷ</button>`;
   phuX.hidden = false;
   let huy = false;
   $('#b-huy').onclick = () => { huy = true; dung(); try { rec.state !== 'inactive' && rec.stop(); } catch {} phuX.hidden = true; };
@@ -1002,6 +1077,8 @@ async function xuat() {
     $('#b-dong-x').onclick = () => { phuX.hidden = true; };
     if (P.caption) navigator.clipboard?.writeText(P.caption).catch(() => {});
   };
+  let khoa = null; try { khoa = await navigator.wakeLock?.request('screen'); } catch {}
+  rec.addEventListener('stop', () => { try { khoa && khoa.release(); } catch {} });
   rec.start(250);
   PL.capNhat = p => { const i = $('#tien'); if (i) { i.style.width = (p * 100).toFixed(1) + '%'; $('#tien-so').textContent = `${Math.round(p * 100)}%`; } };
   await phat(0, dest, () => setTimeout(() => { if (rec.state !== 'inactive') rec.stop(); }, 350));
@@ -1034,6 +1111,80 @@ async function thuGiong(i) {
   ve4();
 }
 function ngheGiong(i) { const c = P.canh[i]; if (!c.thoai) return; const u = URL.createObjectURL(c.thoai); const au = new Audio(u); au.onended = () => URL.revokeObjectURL(u); au.play(); }
+
+/* ---------- Dán thông tin sản phẩm ---------- */
+function docThongTin(txt) {
+  const sach = x => x.replace(/^((yêu thích\+?|mall|lazmall|choice|xtra)\s*|\[[^\]]*\]\s*|【[^】]*】\s*)+/i, '').trim();
+  const dong = txt.split(/\r?\n/).map(x => sach(x.replace(/\s+/g, ' ').trim())).filter(Boolean);
+  const kq = { diem: [] };
+  const laGia = x => /(₫|\dđ(?![a-zà-ỹ])|\d ?(vnđ|vnd)\b)/i.test(x) || /^\d{1,3}([.,]\d{3})+$/.test(x);
+  const thongKe = /(đánh giá|đã bán|lượt bán|lượt thích|người theo dõi|sold|reviews?)/i;
+  const rac = /^(đã bán|đánh giá|yêu thích|chính hãng|freeship|miễn phí vận chuyển|vận chuyển|số lượng|mua ngay|thêm vào giỏ|chat ngay|xem shop|chia sẻ|còn \d|kho|gửi từ|danh mục|thương hiệu|xuất xứ|mô tả sản phẩm|chi tiết sản phẩm|-?\d+%|\d+([.,]\d+)?$)/i;
+  const so = [];
+  dong.filter(x => !thongKe.test(x)).join('\n').replace(/(₫[ \t]?\d[\d.,]*|\d[\d.,]*[ \t]?(₫|đ(?![a-zà-ỹ])|vnđ|vnd|k(?![a-z])))/gi, m => { const v = soTien(m.replace(/[₫đ]|vnđ|vnd/gi, '').trim()); if (v >= 1000 && v < 1e9) so.push(v); return m; });
+  const khac = [...new Set(so)].slice(0, 3);
+  if (khac.length) { kq.gia = String(Math.min(...khac)); const lon = Math.max(...khac); if (lon > +kq.gia) kq.giaGoc = String(lon); }
+  const ma = txt.match(/[Mm]ã[^:\n]{0,30}[:\s]\s*([A-Z0-9]{4,20})\b/);
+  if (ma && /[A-Z]/.test(ma[1])) kq.ma = ma[1];
+  const ten = dong.find(x => x.length >= 8 && x.length <= 160 && !laGia(x) && !rac.test(x) && !thongKe.test(x) && !/^[\d\s.,%₫đ-]+$/.test(x));
+  if (ten) kq.ten = ten.slice(0, 120);
+  const dauDong = /^([-•*✓✔✅➤►▶🔥⭐✨👉]|\d{1,2}[.)](?!\d))\s*/u;
+  let ds = dong.filter(x => dauDong.test(x) && !thongKe.test(x) && !laGia(x)).map(x => x.replace(dauDong, '').trim());
+  if (ds.length < 2) ds = dong.filter(x => x !== ten && x.length >= 15 && x.length <= 110 && !laGia(x) && !rac.test(x) && !thongKe.test(x) && !/^[Mm]ã/.test(x) && !/\d[\d.,]*\s?(₫|đ(?![a-zà-ỹ]))/i.test(x));
+  kq.diem = ds.filter(x => x.length >= 6).map(x => ngan(hoa(x.replace(/[.;,]+$/, '')), 60)).slice(0, 5);
+  return kq;
+}
+function moDan() {
+  const dl = $('#dl-chon');
+  dl.innerHTML = `<div class="hang gian"><b>Dán thông tin sản phẩm</b><button class="nut nho" data-dong>✕</button></div>
+    <p class="phu" style="margin:8px 0">Trên trang sản phẩm (Shopee, TikTok Shop, Lazada…): bôi đen từ tên sản phẩm xuống hết phần mô tả → Chép → dán vào ô dưới.</p>
+    <textarea id="o-dan" rows="9" placeholder="Dán vào đây…"></textarea>
+    <div class="hang" style="justify-content:flex-end;margin-top:10px"><button class="nut chinh" data-dien>✓ Tự điền</button></div>`;
+  dl.onclick = e => {
+    if (e.target.closest('[data-dong]')) return dl.close();
+    if (!e.target.closest('[data-dien]')) return;
+    const t = $('#o-dan').value.trim(); if (!t) return bao('Chưa dán gì cả');
+    const kq = docThongTin(t);
+    const dien = [];
+    if (kq.ten) { P.ten = kq.ten; dien.push('tên'); }
+    if (kq.gia) { P.gia = (+kq.gia).toLocaleString('vi-VN'); P.giaGoc = kq.giaGoc ? (+kq.giaGoc).toLocaleString('vi-VN') : ''; dien.push('giá'); }
+    if (kq.ma) { P.ma = kq.ma; dien.push('mã giảm'); }
+    if (kq.diem.length) { P.diem = kq.diem; dien.push(kq.diem.length + ' điểm nổi bật'); }
+    dl.close();
+    if (!dien.length) return bao('Không đọc được — anh nhập tay giúp em nhé', 3500);
+    luu(); veTatCa(); veDsDuAn();
+    bao('Đã điền: ' + dien.join(', ') + ' — xem lại cho chắc nhé', 3800);
+  };
+  dl.showModal(); setTimeout(() => $('#o-dan').focus(), 50);
+}
+
+/* ---------- Điều hướng dưới ---------- */
+const TEN_BUOC = { 1: 'Sản phẩm', 2: 'Kịch bản', 3: 'Prompt Kling', 4: 'Dựng video' };
+function veNav() {
+  if (!P) return;
+  const xong = { 1: !!P.ten.trim(), 2: P.canh.length > 0 };
+  $$('#nav button').forEach(b => b.classList.toggle('xong', !!xong[b.dataset.b]));
+  const b = +BUOC;
+  $('#b-lui').style.visibility = b > 1 ? '' : 'hidden';
+  $('#chan-giua').textContent = `Bước ${b}/4 · ${TEN_BUOC[b]}`;
+  $('#b-nhanh').hidden = b !== 1;
+  const hep = innerWidth < 820;
+  $('#b-tien').textContent = b === 4 ? '⬇ Xuất video' : hep ? 'Tiếp →' : b === 1 ? 'Tiếp: kịch bản →' : b === 2 ? 'Tiếp: Kling →' : 'Tiếp: dựng video →';
+  $('#b-lui').textContent = hep ? '←' : '← Quay lại';
+}
+function toi() {
+  const b = +BUOC;
+  if (b === 4) return xuat();
+  if (b === 1) { if (!P.ten.trim()) { bao('Nhập tên sản phẩm trước nhé'); $('[data-k=ten]').focus(); return; } if (!P.canh.length) lamKichBan(false); }
+  sangBuoc(b + 1);
+}
+function lamNhanh() {
+  if (!P.ten.trim()) { bao('Nhập tên sản phẩm (hoặc dán thông tin) trước nhé'); $('[data-k=ten]').focus(); return; }
+  if (!P.canh.length) lamKichBan(false); else if (P.media.length && P.canh.every(c => !c.mediaId)) tuGan(true);
+  sangBuoc(4);
+  phat(0);
+  bao('Đang phát thử — ưng thì bấm "Xuất video"', 3500);
+}
 
 /* ---------- Sự kiện ---------- */
 document.addEventListener('input', e => {
@@ -1079,7 +1230,6 @@ document.addEventListener('click', e => {
 });
 $('#nav').onclick = e => { const b = e.target.closest('button[data-b]'); if (b) sangBuoc(b.dataset.b); };
 $('#b-them-diem').onclick = () => { if (P.diem.length >= 6) return bao('Tối đa 6 ý'); P.diem.push(''); ve1(); $$('#ds-diem input').pop().focus(); };
-$('#b-sang2').onclick = () => { if (!P.ten.trim()) { bao('Nhập tên sản phẩm trước nhé'); $('[data-k=ten]').focus(); return; } if (!P.canh.length) lamKichBan(false); sangBuoc(2); };
 $('#b-tao').onclick = () => lamKichBan(false);
 $('#b-doi').onclick = () => lamKichBan(true);
 $('#b-chep-kb').onclick = chepKichBan;
@@ -1106,6 +1256,19 @@ const vt = $('#vung-tai');
 ['dragenter', 'dragover'].forEach(k => vt.addEventListener(k, e => { e.preventDefault(); vt.classList.add('keo'); }));
 ['dragleave', 'drop'].forEach(k => vt.addEventListener(k, e => { e.preventDefault(); vt.classList.remove('keo'); }));
 vt.addEventListener('drop', e => themMedia(e.dataTransfer.files));
+$('#b-dan').onclick = moDan;
+$('#b-lui').onclick = () => sangBuoc(Math.max(1, +BUOC - 1));
+$('#b-tien').onclick = toi;
+$('#b-nhanh').onclick = lamNhanh;
+$('#phu-de').onchange = e => { P.phuDe = e.target.checked; luu(); ve4(); };
+CV.onclick = () => $('#b-phat').click();
+$$('[data-k=gia],[data-k=giaGoc]').forEach(el => el.addEventListener('blur', () => { const v = soTien(el.value); if (v) { el.value = v.toLocaleString('vi-VN'); P[el.dataset.k] = el.value; luu(); } }));
+$('#b-nhan').onclick = () => {
+  dung();
+  let p; try { p = structuredClone(P); } catch { return bao('Máy này chưa nhân bản được'); }
+  p.id = uid(); p.tao = p.sua = Date.now(); p.ten = (P.ten || 'Dự án') + ' (bản sao)';
+  DS.unshift(p); moDuAn(p); luu(); bao('Đã nhân bản — sửa tên, giá cho sản phẩm mới nhé', 3200); sangBuoc(1);
+};
 $('#b-mau').onclick = () => {
   Object.assign(P, { ten: 'Máy xay sinh tố cầm tay mini', moTaEN: 'a pastel pink portable mini blender bottle', gia: '199000', giaGoc: '350000', ma: 'XAYNGON', khach: 'dân văn phòng, người tập gym', vande: 'sáng không có thời gian làm sinh tố', diem: ['Xay đá, trái cây chỉ 30 giây', 'Sạc USB, dùng 15 lần mới phải sạc', 'Nhỏ gọn, bỏ túi mang đi làm đi tập'] });
   luu(); veTatCa(); veDsDuAn(); bao('Đã điền mẫu — bấm "Tiếp: viết kịch bản"');
